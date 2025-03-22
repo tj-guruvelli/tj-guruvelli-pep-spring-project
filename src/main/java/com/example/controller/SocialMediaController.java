@@ -107,11 +107,15 @@ public class SocialMediaController {
      * Delete a message by ID
      * 
      * @param messageId The ID of the message to delete
-     * @return The number of rows affected (1 if deleted, 0 if not found)
+     * @return The number of rows affected (1 if deleted) or empty response if not found
      */
     @DeleteMapping("/messages/{messageId}")
     public Integer deleteMessageById(@PathVariable Integer messageId) {
-        return messageService.deleteMessage(messageId);
+        Integer result = messageService.deleteMessage(messageId);
+        if (result == 0) {
+            return null; // Spring will convert this to an empty response body
+        }
+        return result;
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.entity.Message;
+import com.example.repository.AccountRepository;
 import com.example.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class MessageService {
     @Autowired
     private MessageRepository messageRepository;
     
+    @Autowired
+    private AccountRepository accountRepository;
+    
     /**
      * Creates a new message
      * 
@@ -27,6 +31,11 @@ public class MessageService {
         // Validate message text is not empty and within character limit
         if (message.getMessageText() == null || message.getMessageText().trim().isEmpty() || 
             message.getMessageText().length() > 255) {
+            return null;
+        }
+        
+        // Check if the posted_by user exists
+        if (message.getPostedBy() == null || !accountRepository.existsById(message.getPostedBy())) {
             return null;
         }
         
@@ -91,13 +100,13 @@ public class MessageService {
         }
         
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
-        if (optionalMessage.isPresent()) {
-            Message message = optionalMessage.get();
-            message.setMessageText(newText);
-            messageRepository.save(message);
-            return 1;
+        if (!optionalMessage.isPresent()) {
+            return null; // Message not found should also return null for 400 response
         }
         
-        return 0;
+        Message message = optionalMessage.get();
+        message.setMessageText(newText);
+        messageRepository.save(message);
+        return 1;
     }
 }
